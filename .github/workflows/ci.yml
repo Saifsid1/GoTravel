@@ -33,9 +33,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # ✅ CRITICAL STEP (missing in your workflow)
+      # ✅ BULLETPROOF PRISMA FIX (CRITICAL)
       - name: Generate Prisma Client
-        run: pnpm --filter @gotravel/database db:generate
+        run: pnpm exec prisma generate --schema=packages/database/prisma/schema.prisma
 
       - name: Build all packages
         run: pnpm build
