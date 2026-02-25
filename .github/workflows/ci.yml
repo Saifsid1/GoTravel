@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, master, 'copilot/**']
+    branches: [main, master, "copilot/**"]
   pull_request:
     branches: [main, master]
 
@@ -13,17 +13,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
 
+      - name: Enable pnpm via Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@9 --activate
+          pnpm --version
+
+      - name: Setup .npmrc for authentication
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Install dependencies
         run: pnpm install
+
+      # ✅ BULLETPROOF PRISMA FIX (CRITICAL)
+      - name: Generate Prisma Client
+        run: pnpm exec prisma generate --schema=packages/database/prisma/schema.prisma
 
       - name: Build all packages
         run: pnpm build
