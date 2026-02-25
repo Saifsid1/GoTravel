@@ -1,14 +1,9 @@
 import NextAuth from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import CredentialsProvider from 'next-auth/providers/credentials';
+import Credentials from 'next-auth/providers/credentials';
 
-const handler = NextAuth({
+const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    }),
-    CredentialsProvider({
+    Credentials({
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
@@ -18,7 +13,7 @@ const handler = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -37,7 +32,7 @@ const handler = NextAuth({
             image: data.user.avatar,
             role: data.user.role,
             accessToken: data.accessToken,
-          };
+          } as any;
         } catch {
           return null;
         }
@@ -69,4 +64,5 @@ const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
 });
 
-export { handler as GET, handler as POST };
+export const { GET, POST } = handlers;
+

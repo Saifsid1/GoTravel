@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: gotravel
+      POSTGRES_USER: gotravel
+      POSTGRES_PASSWORD: gotravel123
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U gotravel']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./apps/api
+    ports:
+      - '4000:4000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://gotravel:gotravel123@postgres:5432/gotravel
+      JWT_SECRET: your-super-secret-jwt-key
+      PORT: 4000
+      FRONTEND_URL: http://localhost:3000
+    restart: unless-stopped
+
+  web:
+    build: ./apps/web
+    ports:
+      - '3000:3000'
+    depends_on:
+      - api
+    environment:
+      NEXT_PUBLIC_API_URL: http://api:4000
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: your-nextauth-secret
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
