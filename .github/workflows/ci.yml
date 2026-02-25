@@ -24,6 +24,12 @@ jobs:
           corepack prepare pnpm@9 --activate
           pnpm --version
 
+      - name: Setup .npmrc for authentication
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Install dependencies
         run: pnpm install
 
